@@ -10,17 +10,71 @@ IEx.configure(
 )
 
 # Put any code here that should be executed when iex is started
+
+defmodule Helpers do
+  @moduledoc "My own custom dev functions. Imported by default"
+
+  # https://www.yellowduck.be/posts/copy-to-clipboard-in-iex
+  def copy(term) do
+    text =
+      case is_binary(term) do
+        true -> term
+        _ -> inspect(term, limit: :infinity, pretty: true)
+      end
+
+    port = Port.open({:spawn, "pbcopy"}, [])
+    true = Port.command(port, text)
+    true = Port.close(port)
+
+    :ok
+  end
+
+  def paste do
+    port = Port.open({:spawn, "pbpaste"}, [])
+
+    receive do
+      {^port, {:data, data}} ->
+        true = Port.close(port)
+        data
+
+      _ ->
+        true = Port.close(port)
+        IO.puts("No data received from clipboard.")
+    end
+  end
+end
+
+import Helpers
+
+running_applications = Application.started_applications()
+
+# Applications that need to be loaded by Mix, if Mix is running, in order for
+# code in this file to run.
+if List.keyfind(running_applications, :mix, 0) do
+  Mix.ensure_application!(:wx)
+  Mix.ensure_application!(:runtime_tools)
+  Mix.ensure_application!(:observer)
+end
+
+defmodule ObserverHelper do
+  # https://hexdocs.pm/elixir/debugging.html#observer
+  def start do
+    Application.ensure_all_started(:observer)
+    :observer.start()
+  end
+end
+
 defmodule TelemetryHelper do
   @moduledoc """
-  Helper functions for seeing all telemetry events.
-  Only for use in development.
+    Helper functions for seeing all telemetry events.
+    Only for use in development.
   """
 
   @doc """
-  attach_all/0 prints out all telemetry events received by default.
-  Optionally, you can specify a handler function that will be invoked
-  with the same three arguments that the `:telemetry.execute/3` and
-  `:telemetry.span/3` functions were invoked with.
+    attach_all/0 prints out all telemetry events received by default.
+    Optionally, you can specify a handler function that will be invoked
+    with the same three arguments that the `:telemetry.execute/3` and
+    `:telemetry.span/3` functions were invoked with.
   """
   def attach_all(function \\ &default_handler_fn/3) do
     # Start the tracer
@@ -31,6 +85,10 @@ defmodule TelemetryHelper do
     :dbg.tracer(
       :process,
       {fn
+         # telemetry.execute/2 is another function we need to trace
+         {_, _, _, {_mod, :execute, [name, measurements]}}, _state ->
+           function.(name, [], measurements)
+
          {_, _, _, {_mod, :execute, [name, measurement, metadata]}}, _state ->
            function.(name, metadata, measurement)
 
@@ -43,6 +101,7 @@ defmodule TelemetryHelper do
     :dbg.p(:all, :c)
 
     # See all emitted telemetry events
+    :dbg.tp(:telemetry, :execute, 2, [])
     :dbg.tp(:telemetry, :execute, 3, [])
     :dbg.tp(:telemetry, :span, 3, [])
   end
@@ -57,5 +116,84 @@ defmodule TelemetryHelper do
     IO.puts(
       "Telemetry event:#{inspect(name)}\nwith #{inspect(measure_or_fun)} and #{inspect(metadata)}"
     )
+  end
+end
+
+defmodule RequestHelper do
+  @moduledoc """
+    Module for easy tracking of calls to httpc.request functions. Eventually I want
+    to convert this to a module containing a library of common trace patterns.
+  """
+
+  def start do
+    :dbg.start()
+
+    # Create tracer process with a function that pattern matches out the three
+    # arguments the telemetry calls are made with.
+    :dbg.tracer(
+      :process,
+      {fn
+         {_, _, _, {mod, fun, args}}, _state ->
+           IO.inspect([mod, fun, args])
+       end, nil}
+    )
+
+    # Trace all processes
+    :dbg.p(:all, :c)
+
+    # See all HTTP request calls made to httpc
+    :dbg.tp(:httpc, :request, 5, [{~c"_", [], [{:return_trace}]}])
+    :dbg.tp(:httpc, :request, 4, [{~c"_", [], [{:return_trace}]}])
+    :dbg.tp(:httpc, :request, 1, [{~c"_", [], [{:return_trace}]}])
+  end
+end
+
+defmodule StartupBenchmark do
+  @moduledoc "Code to benchmark application startup"
+
+  @spec benchmark(module()) :: list()
+  def benchmark(application) do
+    # Fetch a complete list of a dependencies, they should be in the order
+    # they need to be started in.
+    complete_deps = deps_list(application)
+
+    # Start each application in order, timing the start of each application
+    dep_start_times =
+      Enum.map(complete_deps, fn app ->
+        case :timer.tc(fn -> Application.start(app) end) do
+          {time, :ok} -> {time, app}
+          # Some dependencies like :kernel will have already been started, we can
+          # ignore them
+          {time, {:error, {:already_started, _}}} -> {time, app}
+          # Raise an exception if we get an non-successful return value
+          {_time, error} -> raise(error)
+        end
+      end)
+
+    # Sort dependencies by start time so slowest application is listed first
+    dep_start_times
+    |> Enum.sort()
+    |> Enum.reverse()
+  end
+
+  defp deps_list(app) do
+    # Get all dependencies for an app
+    deps = Application.spec(app)[:applications]
+
+    complete_deps =
+      case deps do
+        nil ->
+          []
+
+        _deps ->
+          # Recursively call to get all sub-dependencies
+          Enum.map(deps, fn dep -> deps_list(dep) end)
+      end
+
+    # Build a complete list of sub dependencies, with the top level application
+    # requiring them listed last, also remove any duplicates
+    [complete_deps, [app]]
+    |> List.flatten()
+    |> Enum.uniq()
   end
 end

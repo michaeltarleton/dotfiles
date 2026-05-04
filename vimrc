@@ -51,12 +51,25 @@ set incsearch
 " Wrap around the file when searching
 set wrapscan
 
+" By default perform case-insensitive searches. To perform case-sensitive use
+" /<term>\C
+set ignorecase
+
+" Use case insensitive search unless I use an uppercase letter in the search
+set smartcase
+
 " Allow certain movement commands to move into the next/previous line when it
 " makes sense
 set whichwrap=h,l
 
 " Show 4 lines after cursor, useful when reviewing search results
 set scrolloff=4
+
+" Set the title of the terminal window
+set title
+
+" Don't move cursor to start of line when switching buffers
+set nostartofline
 
 " Show the 80 column line
 set colorcolumn=80,120
@@ -86,6 +99,41 @@ set showmode
 set wildmenu
 set wildmode=full
 
+" Turn on insert mode text as-you-type completion
+set autocomplete
+
+" Configure as-you-type completions
+" menu - show menu when there are multiple possible completions
+" menuone - show menu even when there is only one possible completion
+" noselect - do not select any menu item by default
+" noinsert - do not insert any text until the user selects it
+" preview - show extra info about the currently selected completion
+" popup - show extra info about completion suggestions
+set completeopt=menu,menuone,noselect,noinsert,popup
+
+" Insert completion options
+" https://medium.com/usevim/set-complete-e76b9f196f0f
+" For a full list of options run :help 'complete'
+
+" Use words from current file, buffers in any open window, and any open buffer
+set complete=.,w,b
+
+" Use omnifunc completion for LSP suggestions
+set complete+=o
+
+" Use completefunc completion for UltiSnips snippet name suggestions
+set complete+=F
+
+" Use tags for completion as well
+set complete+=t
+
+" Use words from dictionary for completion
+" https://www.reddit.com/r/vim/comments/39l4jt/comment/cs4y7la/
+set complete+=k
+
+" Use completions from spell check
+set complete+=kspell
+
 " Turn on cursor column highlighting
 set cursorcolumn
 
@@ -104,10 +152,11 @@ set mouse=
 set laststatus=2
 
 " Custom status bar
-set statusline=\ Filename:%-8t                               " Filename
-set statusline+=\ Encoding:\%-8{strlen(&fenc)?&fenc:'none'}  " File encoding
+set statusline=\ Filename:%-6t                               " Filename
+set statusline+=\ Encoding:\%-6{strlen(&fenc)?&fenc:'none'}  " File encoding
 set statusline+=\ Line\ Endings:%-6{&ff}                     " Line Endings
-set statusline+=\ Type:%-12y                                 " File Type
+set statusline+=\ Type:%-6y                                  " File Type
+set statusline+=%{gutentags#statusline()}                    " Show gutentags status
 set statusline+=%=%h%m%r                                     " Flags
 set statusline+=\ %l/%L                                      " Cursor line and total lines
 set statusline+=\ %c                                         " Cursor column
@@ -116,7 +165,7 @@ set statusline+=\ %P                                         " Percentage throug
 "set statusline+=\ Buf:%n                                     " Buffer number
 
 " Color status bar
-highlight statusline ctermfg=cyan ctermbg=black guifg=cyan guibg=black
+highlight statusline ctermfg=darkcyan ctermbg=white guifg=cyan guibg=black
 
 if has('macunix')
     " allow yanking to OSX clipboard
@@ -141,6 +190,10 @@ set wildignore+=/tmp/,*.so,*.swp,*.swo,*.zip,*.meta,*.prefab,*.png,*.jpg,*.beam
 " it before working on another buffer.
 set hidden
 
+" Configure Vim dictionary with OS words list
+" On arch linux run 'sudo pacman -S words' to install this file
+set dictionary+=/usr/share/dict/words
+
 " Turn on spell checking for all files
 set spell
 
@@ -157,19 +210,6 @@ for d in glob('~/.vim/spell/*.add', 1, 1)
         silent exec 'mkspell! ' . fnameescape(d)
     endif
 endfor
-
-" Keyword completion options
-" Use completions from spell check
-set complete+=kspell
-
-" Use tags for completion as well
-set complete+=t
-
-" Configure as-you-type completions
-" menu - show menu when there are multiple possible completions
-" menuone - show menu even when there is only one possible completion
-" preview - show extra info about the currently selected completion
-set completeopt=menu,menuone,preview
 
 " TODO: Figure out what all these settings do and check in the ones that are
 " useful
@@ -201,6 +241,7 @@ set foldlevel=99
 
 " Use built in file browser (netrw) instead of NERDTree
 " (https://shapeshed.com/vim-netrw/)
+" Disable banner
 let g:netrw_banner = 0
 " Make the browser 25% of the width of the editor
 let g:netrw_winsize = 25
@@ -261,6 +302,11 @@ inoremap <Left> <esc> :echoe "Use h"<cr>
 inoremap <Right> <esc> :echoe "Use l"<cr>
 inoremap <Up> <esc> :echoe "Use k"<cr>
 inoremap <Down> <esc> :echoe "Use j"<cr>
+
+" Map tab and shift-tab to insert completion navigation bindings when
+" completion menu is visible.
+inoremap <silent><expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
 " Allow replacing of searched text by using `cs` on the first result and `n.`
 " on all consecutive results
@@ -352,6 +398,9 @@ endfunction
 
 command! -nargs=1 SetSpaces :call SetSpaces(<f-args>)
 
+" Load SortWords function
+source $HOME/.vim/sortwords.vim
+
 " Make Q repeat last macro
 nnoremap Q @@
 
@@ -362,18 +411,39 @@ nnoremap Q @@
 " Load plugins
 source $HOME/.vim/plugins.vim
 
-" Start CtrlP on startup
-autocmd VimEnter * CtrlP
+" For fzf and vim see
+" https://thevaluable.dev/fzf-vim-integration/
+" https://github.com/junegunn/fzf.vim
+" fzf.vim configuration dictionary
+let g:fzf_vim = {}
+
+" disable preview window
+let g:fzf_vim.preview_window = []
+
+" Jump to existing window if possible
+let g:fzf_vim.buffers_jump = 1
+
+" display fzf window at bottom like Ctrl-P
+let g:fzf_layout = {'window': { 'width': 1, 'height': 20, 'yoffset': 1}}
+
+" key mappings for opening fzf
+
+" leader-b for buffers
+nnoremap <leader>b :Buffers<CR>
+
+" ctrl-p for all files (if in Git repo FZF_DEFAULT_COMMAND excludes ignored
+" files)
+" https://github.com/junegunn/fzf.vim/issues/121#issuecomment-466056060
+nnoremap <C-p> :Files<CR>
+
+" ctrl-i for all lines in current file
+nnoremap <C-i> :Lines<CR>
 
 " Vim-Erlang Skeleton settings
-let g:erl_replace_buffer=0
+let g:erl_replace_buffer = 0
 
 " Custom simplified Erlang templates (without all the verbose comment blocks)
-let g:erl_tpl_dir=$HOME."/dotfiles/templates/erlang"
-
-" Erlang plugin settings. TODO: Pull these from the environment
-" let g:erl_author=""
-" let g:erl_company=""
+let g:erl_tpl_dir = $HOME."/dotfiles/templates/erlang"
 
 " Align line-wise comment delimiters flush left instead of following code
 " indentation
@@ -381,11 +451,6 @@ let g:NERDDefaultAlign = 'left'
 
 " Use compact syntax for prettified multi-line comments
 let g:NERDCompactSexyComs = 1
-
-" CtrlP directory mode
-let g:ctrlp_working_path_mode = 0
-
-set runtimepath^=$HOME/.vim/bundle/ctrlp.vim
 
 " Vim pencil settings
 " Hard wrapping was causing newlines I added to be removed from code in Markdown
@@ -407,32 +472,6 @@ endfunction
 autocmd! User GoyoEnter nested call <SID>goyo_enter()
 autocmd! User GoyoLeave nested call <SID>goyo_leave()
 
-"open CtrlP in buffer mode
-nnoremap <leader>b :CtrlPBuffer<CR>
-
-" custom CtrlP ignores toggle
-function! ToggleCtrlPIgnores()
-    if exists("g:ctrlp_user_command")
-        " unset the ignores
-        let g:ctrlp_custom_ignore = {}
-        unlet g:ctrlp_user_command
-    else
-        " always ignore these patterns
-        let g:ctrlp_custom_ignore = {
-                    \'dir': 'ebin\|DS_Store\|git$\|bower_components\|node_modules\|logs',
-                    \'file': '\v\.(beam|pyc|swo|jpg)$',
-                    \}
-        " also ignore files listed in the .gitignore
-        " This command returns all text files under version control
-        let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files . -co --exclude-standard', 'find %s -type f']
-        "let g:ctrlp_user_command = '(cd %s; git grep --cached -Il "") || find %s -type f'
-    end
-endfunction
-
-call ToggleCtrlPIgnores()
-"let g:ctrlp_user_command = '(cd %s; git grep --cached -Il "") || find %s -type f'
-:nnoremap <F6> call ToggleCtrlPIgnores()<CR>
-
 " vim-indent-guides settings
 "let g:indent_guides_enable_on_vim_startup = 1
 "let g:indent_guides_start_level = 0
@@ -441,12 +480,41 @@ call ToggleCtrlPIgnores()
 " ALE settings
 let g:ale_lint_delay = 400
 
-" Disable elixirLS Dialyzer checks
-let g:ale_elixir_elixir_ls_config = {
-\   'elixirLS': {
-\     'dialyzerEnabled': v:false,
-\   },
-\ }
+" Use ale suggestions for omni complete
+set omnifunc=ale#completion#OmniFunc
+
+" Custom completion function for available UltiSnips snippets
+function! UltiSnipsSnippetName(findstart, base) abort
+  if a:findstart
+    " Locate the start of the word to be completed, and return the index of it
+    let line = getline('.')
+    let col = col('.') - 1
+    while col > 0 && line[col - 1] =~ '\a'
+      let col -= 1
+    endwhile
+
+    return col
+  else
+    " Find any snippets with matching name and return them as suggestions
+    let suggestions = []
+
+    let snippets = UltiSnips#SnippetsInCurrentScope(1)
+
+    for snippet_name in keys(snippets)
+      let description = get(snippets, snippet_name)
+      let suggestion = {'word': snippet_name, 'menu': description, 'kind': 'S'}
+
+      if snippet_name =~ '^' . a:base
+        call add(suggestions, suggestion)
+      endif
+    endfor
+
+    return suggestions
+  endif
+endfunction
+
+" Use custom UltiSnips completion function as completefunc
+set completefunc=UltiSnipsSnippetName
 
 " Configure ALE fixers
 " On all files, removing trailing lines and whitespace
@@ -472,6 +540,10 @@ let g:ale_lint_on_insert_leave = 1
 
 " UltiSnips settings
 let g:UltiSnipsExpandTrigger=",<tab>"
+
+" Load snippets from dotfiles and from my notes directory
+" https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt#L550
+let g:UltiSnipsSnippetDirectories=["UltiSnips", $HOME."/notes/snippets/"]
 
 " My custom mapping
 function! RunTestFileOrLast()
@@ -502,6 +574,7 @@ autocmd BufRead,BufNewFile Jenkinsfile set filetype=groovy
 autocmd BufRead,BufNewFile *gitconfig set filetype=conf
 " I don't think *.avdl files are valid scala but this is close enough
 autocmd BufRead,BufNewFile *.avdl set filetype=scala
+autocmd BufRead,BufNewFile *aws/config set filetype=confini
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Auto commands
@@ -523,10 +596,14 @@ augroup END
 augroup test
   autocmd!
 
-  " Run tests automatically when a file is saved
-  autocmd BufWritePost * if test#exists() |
-    \   TestFile |
-    \ endif
+  " We want to trigger running of tests when the buffer is written to disk, but
+  " only if manually written. If written as part of cdo or cfdo we don't want
+  " to run tests as that would interrupt the process of files in the quickfix
+  " list
+  autocmd CmdlineEnter : if getcmdtype() ==# ':' && getcmdline() =~# '^\s*cf\?do\>' | let g:__batch_process = 1 | endif
+  autocmd CmdlineLeave : if exists('g:__batch_process') | unlet g:__batch_process | endif
+
+  autocmd BufWritePost * if test#exists() && exists('g:__batch_process') | TestFile | endif
 augroup END
 
 " Taken from https://jeffkreeftmeijer.com/vim-number/
@@ -565,3 +642,10 @@ endfunction
 " Invoking RTFHighlight on the current buffer will copy the highlighted code
 " to clipboard
 command! -range=% RTFHighlight :call RTFHighlight(<line1>,<line2>)
+
+" Use ripgrep for searching files instead of grep
+" https://phelipetls.github.io/posts/extending-vim-with-ripgrep/
+if executable('rg')
+  set grepprg=rg\ --vimgrep\ --smart-case\ --hidden\ $*
+  set grepformat^=%f:%l:%c:%m
+endif

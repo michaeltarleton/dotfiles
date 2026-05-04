@@ -1,0 +1,32 @@
+% file, format, contents
+
+# highlight lines in a file that contain non-ASCII characters. Alternatively use `grep` with the `-P` flag
+pcregrep --color='auto' -n '[^\x00-\x7F]' <FILE>
+
+# print encoding of file. On OSX use `file -I`. For images shows general image info like format and dimensions
+file <FILE>
+
+# show colorspace, channel depth, dimensions, and other metadata for an image
+identify -verbose <FILE>
+
+# Show date a photo was taken
+exiftool -q -p '$FileModifyDate  $FileName' <FILE>
+
+# Show file size
+stat -c%s
+
+# validate that an XML file is valid and encoded as UTF-8
+xmllint --valid --encode utf-8 <file>
+
+# blackhole file, exists on the file system as a symlink, but anything written to it disappears
+ln -s /dev/null FILE
+
+# Rename set of files
+rename 's/<OLD_PATTERN>/<NEW_PATTERN>/' *
+
+# Convert input UTF-8 to asciidoc
+iconv -f utf-8 -t ascii//translit
+
+FILE: -
+OLD_PATTERN: -
+NEW_PATTERN: -

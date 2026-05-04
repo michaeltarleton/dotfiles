@@ -1,0 +1,7 @@
+% uuid, random, unique
+
+# Generate a uuid value
+uuidgen
+
+# Generate 256 random string
+pwgen -s 256 1 | sha256

@@ -7,7 +7,8 @@ source "$HOME/dotfiles/mixins/path"
 source "$HOME/dotfiles/mixins/man_color"
 
 # Use asdf autocompletions
-source "$HOME/.asdf/completions/asdf.bash"
+# Run `mkdir -p $HOME asdf; asdf completion bash > $HOME/.bash-completions/asdf.bash`
+source "$HOME/.bash-completions/asdf.bash"
 
 # We need this so that tmux uses bash when started in a bash shell
 export SHELL=/bin/bash
@@ -28,3 +29,8 @@ export PROMPT_COMMAND='if [ "$(id -u)" -ne 0 ]; then echo "$(date "+%Y-%m-%d.%H:
 
 # Use vi mode
 set -o vi
+
+# Custom options
+if [ -f "$HOME/dotfiles/mixins/shellrc.custom" ]; then
+    source "$HOME/dotfiles/mixins/shellrc.custom"
+fi

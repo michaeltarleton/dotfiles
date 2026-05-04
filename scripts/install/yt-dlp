@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Download and install youtube-dl
+# Download and install yt-dlp
 #
-# Usage ./youtube-dl.sh
+# Usage ./yt-dlp
 
 # Unoffical Bash "strict mode"
 # http://redsymbol.net/articles/unofficial-bash-strict-mode/
@@ -10,5 +10,5 @@ set -euo pipefail
 #ORIGINAL_IFS=$IFS
 IFS=$'\t\n' # Stricter IFS settings
 
-curl -L https://yt-dl.org/downloads/latest/youtube-dl -o $HOME/bin/youtube-dl
-chmod a+rx $HOME/bin/youtube-dl
+curl -L https://github.com/yt-dlp/yt-dlp/releases/download/2024.11.04/yt-dlp -o $HOME/bin/yt-dlp
+chmod a+rx $HOME/bin/yt-dlp

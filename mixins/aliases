@@ -7,6 +7,7 @@ alias g="git"
 alias k="kubectl"
 alias v="vim"
 alias r='rebar3'
+alias tm='tmuxinator'
 
 # For convenience
 alias ..="cd .."
@@ -18,18 +19,12 @@ alias ......='cd ../../../../..'
 # For common commands
 alias be="bundle exec"
 
-# Git alias
-alias gst="git status"
-alias gco="git commit -m "
-alias gdh="git diff HEAD"
-alias gd="git diff"
+# Simpler way of invoking restish
+alias h='NOCOLOR=1 restish'
 
-# Postgres
-# TODO: These need to change to support asdf-postgres
-# pg_ctl -D ~/.asdf/installs/postgres/9.5.2/data -l logfile start
-alias startpost='pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start'
-alias stoppost='pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log stop'
-alias statpost='ps aux | rg postgres'
+# For colored output
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
 
 if [[ "$(uname -s)" = 'Darwin' ]]; then
     # If we are on OSX create a `zeal` alias and a `qcachegrind` alias
@@ -38,12 +33,6 @@ if [[ "$(uname -s)" = 'Darwin' ]]; then
     alias qcachegrind='/Applications/qcachegrind.app/Contents/MacOS/qcachegrind'
 
     alias readlink="greadlink"
-else
-    # We must be on Debian or some other OS
-    # Create pbcopy and pbpaste aliases so we can use them outside of OSX
-
-    alias pbcopy='xsel --clipboard'
-    alias pbpaste='xsel --clipboard -o'
 fi
 
 # Alias for creating a Google meet meeting
@@ -53,23 +42,19 @@ alias meet="open https://meet.google.com/new"
 alias bigo="open $HOME/dotfiles/charts/bigoposter.pdf"
 alias vim-cheatsheet="open $HOME/dotfiles/charts/vim_cheat_sheet_for_programmers_print.png"
 
-# tmuxinator is only installed in default version of Ruby, so we change to the
-# home directory to invoke it with the default Ruby.
-alias tmuxinator="cd $HOME && tmuxinator"
-
 # Ripgrep aliases
+# By default search hidden files and directories
+alias rg="rg -."
+
+# ripgrep alias for always searching all files
+alias rgu="rg --no-ignore -."
+
+# Aliases for specific file types
 alias rge="rg --type erlang"
 alias rgr="rg --type ruby"
 alias rgx="rg --type elixir"
-alias rgu="rg --no-ignore"
-
-# URL encoding/decoding commands
-alias urldecode='python -c "import sys, urllib.parse as parse; \
-    print(parse.unquote(sys.argv[1]))"'
-
-alias urlencode='python -c "import sys, urllib.parse as parse; \
-    print(parse.quote(sys.argv[1]))"'
 
 # iex alias for a better Elixir shell with a readline wrapper
-alias iex='rlwrap iex'
-
+# this allows me to use my vi bindings from .inputrc in iex
+# https://elixirforum.com/t/i-d-love-to-see-iex-command-line-supporting-vi-command-line-editing/3365
+alias iex='rlwrap --always-readline --no-children iex'

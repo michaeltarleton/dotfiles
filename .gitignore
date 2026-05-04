@@ -1,8 +1,6 @@
 !.*
-.tugboat
 .DS_Store
 *.beam
-oh-my-zsh/
 vim/.netrwhist
 vim/spell/*.spl
 vim/undodir
@@ -11,11 +9,12 @@ private
 # Ignore everything in vim/bundle except Vundle
 vim/bundle/
 
-# Ignore bundle cache
-bundle/cache
-
 # Ignore custom files
 mixins/*.custom
 scripts/custom_tools/
 scripts/custom_functions/
 scripts/upon_login_custom.sh
+
+# Ignore all files in git/configs except example file
+git/configs/
+!git/configs/companyname.example

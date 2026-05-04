@@ -54,7 +54,7 @@ install_or_upgrade curl
 install_or_upgrade ripgrep
 
 # other development tools
-install_or_upgrade exuberant-ctags
+install_or_upgrade universal-ctags
 install_or_upgrade jq
 install_or_upgrade "linux-tools-$(uname -r)" # perf
 install_or_upgrade dstat
@@ -118,6 +118,9 @@ install_or_upgrade graphviz
 
 # For plotting data on charts at the command line
 install_or_upgrade gnuplot
+
+# For manipulating tabular data on the command line
+install_or_upgrade miller
 
 # For image metadata manipulation
 install_or_upgrade exiftool
@@ -244,3 +247,7 @@ $HOME/dotfiles/scripts/setup/tmux.sh
 if ! grep -c "flat-volumes = no" "$HOME/.pulse/daemon.conf"; then
     echo "flat-volumes = no" >> "$HOME/.pulse/daemon.conf"
 fi
+
+# Adjust gamma so darker tones aren't whitewashed on my laptop monitor
+# https://askubuntu.com/questions/9248/is-there-a-software-utility-to-adjust-screen-gamma-brightness-contrast
+xgamma -gamma 0.5

@@ -42,12 +42,30 @@ Plugin 'xolox/vim-lua-ftplugin'
 Plugin 'groenewege/vim-less'
 Plugin 'cakebaker/scss-syntax.vim'
 
+" For displaying for hexadecimal color codes inline as the vim background
+" color
+Plugin 'ap/vim-css-color'
+
 " Mustache
 Plugin 'mustache/vim-mustache-handlebars'
 
 " For productivity
 Plugin 'tpope/vim-ragtag'
-Plugin 'ctrlpvim/ctrlp.vim'
+
+" Provide more text targets to operate on. This plugin allows visual mode
+" operations on characters that are available out of the box in vim. For
+" example:
+"
+" * select text of a url segment: vi/
+" * delete everything between pipes: di|
+"
+" For more see
+" https://medium.com/codex/vim-targets-work-on-text-objects-with-less-keystrokes-684683bbaeea
+Plugin 'wellle/targets.vim'
+
+" File fuzzy finder
+Plugin 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plugin 'junegunn/fzf.vim'
 
 " Maybe try https://github.com/tpope/vim-commentary instead?
 Plugin 'scrooloose/nerdcommenter'
@@ -62,9 +80,6 @@ Plugin 'ludovicchabant/vim-gutentags'
 " http://vimcasts.org/episodes/aligning-text-with-tabular-vim/
 Plugin 'godlygeek/tabular'
 
-" For tab completion
-Plugin 'ervandew/supertab'
-
 " Git plugins
 Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-fugitive'
@@ -73,6 +88,10 @@ Plugin 'tpope/vim-fugitive'
 " I have considered moving to https://github.com/liuchengxu/graphviz.vim
 " but lacks the :GraphvizInteractive command which I like to use
 Plugin 'wannesm/wmgraphviz.vim'
+
+" For easy math in Vim
+Plugin 'arecarn/vim-selection'
+Plugin 'arecarn/vim-crunch'
 
 " Ultisnips for code snippet management
 Plugin 'SirVer/ultisnips'
@@ -123,12 +142,6 @@ filetype plugin indent on
 " Disabled this plugin because it broke the C-l mapping to refresh Vim
 " Plugin 'christoomey/vim-tmux-navigator'
 
-" I decided against this plugin because 1). it's got a pretty specific use
-" case, and I don't do much with colors in CSS and 2). it's not really enough
-" color for me to get an accurate idea of what the color is when I'm in the
-" terminal.
-" Plugin 'ap/vim-css-color'
-
 " I no longer use haml
 " Plugin 'tpope/vim-haml'
 
@@ -143,3 +156,7 @@ filetype plugin indent on
 
 " In-editor file browser. Disabled because of poor performance
 "Plugin 'scrooloose/nerdtree'
+
+" Too noisy and distracting. Provides poor quality suggestions that slow me
+" down
+"Plugin 'github/copilot.vim'

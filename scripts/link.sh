@@ -21,9 +21,13 @@ dotfiles=$HOME/dotfiles
 files="vimrc vim zshrc bashrc tmux.conf gitignore_global ctags screenrc \
     jshintrc rsync-exclude tool-versions agignore asdfrc psqlrc hushlogin \
     my.cnf inputrc editrc iex.exs curlrc irbrc gemrc ripgrep-ignore \
-    gitattributes gnuplot digrc"
+    gitattributes gnuplot digrc default-gems"
 
 # Functions
+error_exit() {
+  printf "\e[1;7;31m'%s\n\e[0m" "$1" 1>&2
+  exit "${2:-1}" # default exit status 1
+}
 
 print_heading() {
     local text=$1
@@ -127,15 +131,21 @@ create_or_replace_symlinks "$dotfiles/scripts/tools" "$HOME/bin"
 # Symlink all the scripts in scripts/git to the bin directory
 create_or_replace_symlinks "$dotfiles/scripts/git" "$HOME/bin"
 
-# Some scripts are only needed on MacOS
+# Some scripts are only needed on MacOS or Linux
 if [ "$(uname)" == "Darwin" ]; then
   create_or_replace_symlinks "$dotfiles/scripts/tools/macos" "$HOME/bin"
 fi
 
+if [ "$(uname)" == "Linux" ]; then
+  create_or_replace_symlinks "$dotfiles/scripts/tools/linux" "$HOME/bin"
+fi
+
 if [ "$(uname)" == "Darwin" ]; then
-  symlink "$dotfiles/templates/k9s/skin.yml" "$HOME/Library/Application Support/k9s/skin.yml"
+  symlink "$dotfiles/templates/k9s/stratus3d.yaml" "$HOME/Library/Application Support/k9s/skins/stratus3d.yaml"
+  symlink "$dotfiles/templates/k9s/config.yaml" "$HOME/Library/Application Support/k9s/config.yaml"
 else
-  echo "Cannot link k9s skin"
+  symlink "$dotfiles/templates/k9s/stratus3d.yaml" "$HOME/.config/k9s/skins/stratus3d.yaml"
+  symlink "$dotfiles/templates/k9s/config.yaml" "$HOME/.config/k9s/config.yaml"
 fi
 
 # Download Vundle if not already downloaded
@@ -146,6 +156,13 @@ if [ ! -d "$vundle_dir" ]; then
 else
   echo "Vundle already installed"
 fi
+
+# Validate Vim was compiled with flags needed by plugins
+vim_info="$(vim --version)"
+grep -F '+float' <<< "$vim_info" > /dev/null ||
+  error_exit "Vim not compiled with +float option needed for the crunch plugin. Please recompile"
+grep -F '+python' <<< "$vim_info" > /dev/null ||
+  error_exit "Vim not compiled with +python option needed for the ultisnips plugin. Please recompile"
 
 # Install Vundle and all other plugins
 print_heading "Installing Vim Plugins"

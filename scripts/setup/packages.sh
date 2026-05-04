@@ -14,11 +14,11 @@ IFS=$'\t\n' # Stricter IFS settings
 # Ruby Packages
 ###############################################################################
 
-# For managing project dependencies
-gem install bundler
-
 # For tmux projects
-gem install tmuxinator -v 3.0.5
+gem install tmuxinator -v 3.3.7
+
+# For asciidoc file processing
+gem install asciidoctor -v 2.0.17
 
 # Python Packages
 ###############################################################################
@@ -28,9 +28,6 @@ pip install Pygments
 
 # flake8 for linting
 python -m pip install flake8
-
-# csvkit for CSV utilities
-pip install csvkit
 
 # Spotify downloader
 pip3 install spotdl

@@ -64,10 +64,10 @@ fancy_echo "Updating Homebrew formulas ..."
 brew update
 
 # My default interactive shell
-brew_install_or_upgrade 'zsh'
+brew_install_or_upgrade zsh
 
 # For version control
-brew_install_or_upgrade 'git'
+brew_install_or_upgrade git
 
 # For code search
 brew_install_or_upgrade ripgrep
@@ -76,22 +76,22 @@ brew_install_or_upgrade ripgrep
 brew_install_or_upgrade grep
 
 # My editor
-brew_install_or_upgrade 'vim'
+brew_install_or_upgrade vim
 
-# For Code navigation - Exuberant ctags
-brew_install_or_upgrade ctags
+# For Code navigation - Universal ctags
+brew_install_or_upgrade universal-ctags
 
 # For screen sessions
-brew_install_or_upgrade 'tmux'
-$HOME/dotfiles/script/setup/tmux.sh
+brew_install_or_upgrade tmux
+"$HOME/dotfiles/script/setup/tmux.sh"
 
 # For shell scripting
-brew_install_or_upgrade 'shellcheck'
+brew_install_or_upgrade shellcheck
 
 # For image manipulation
-brew_install_or_upgrade 'imagemagick'
-brew_install_or_upgrade 'qt'
-brew_install_or_upgrade 'telnet'
+brew_install_or_upgrade imagemagick
+brew_install_or_upgrade qt
+brew_install_or_upgrade telnet
 
 # For building Erlang and Elixir, possibly other things
 brew_install_or_upgrade autoconf
@@ -99,11 +99,11 @@ brew_install_or_upgrade autoconf
 # For Ruby
 brew_install_or_upgrade readline
 
-# For various languages that use OpenSSL
-brew_install_or_upgrade 'openssl'
+# For various languages that use OpenSSL version 3
+brew_install_or_upgrade openssl
 brew unlink openssl && brew link openssl --force
 
-brew_install_or_upgrade 'libyaml'
+brew_install_or_upgrade libyaml
 
 # Visualization library
 brew_install_or_upgrade graphviz
@@ -111,6 +111,9 @@ brew link graphviz
 
 # For plotting data on charts at the command line
 brew_install_or_upgrade gnuplot
+
+# For manipulating tabular data on the command line
+install_or_upgrade miller
 
 # Install command-line JSON processor
 brew_install_or_upgrade jq
@@ -146,11 +149,6 @@ brew_install_or_upgrade expect
 # For easy renaming of files
 brew_install_or_upgrade rename
 
-# For adb
-brew_tap caskroom/cask
-brew cask install android-sdk
-brew cask install android-platform-tools
-
 # Mosh for high latency remote servers
 brew_install_or_upgrade mobile-shell
 
@@ -163,6 +161,10 @@ brew_install_or_upgrade pinentry
 
 # For password management
 brew_install_or_upgrade pass
+brew_install_or_upgrade pass-otp
+
+# For working with JWT tokens on the command line
+brew_install_or_upgrade step
 
 # Elm for packages that require it
 brew_install_or_upgrade elm
@@ -172,10 +174,6 @@ brew_install_or_upgrade mtr
 
 # OSX alternative to `ps auxf` for process tree views
 brew_install_or_upgrade pstree
-
-# Images in the terminal
-brew_tap eddieantonio/eddieantonio
-brew_install_or_upgrade imgcat
 
 # Install tools for server testing and administration
 brew_install_or_upgrade ansible
@@ -219,8 +217,31 @@ brew cask install inkscape
 # For notifications on MacOS (and for the notify-send-macos script)
 brew_install_or_upgrade terminal-notifier
 
+# For programmable CLI menus
+brew_install_or_upgrade fzf
+
+# For Hardware
+
+# For programmable keyboard
+brew_install_or_upgrade vial
+
+# For software infrastructure
+
+# For declarative infrastructure
+brew_install_or_upgrade terraform
+brew_install_or_upgrade tflint
+brew_install_or_upgrade hashicorp/tap/terraform-ls
+
+# For Kubernetes management
+brew_install_or_upgrade kubectl
+
+# MacOS specific packages
+
+# Hammerspoon for keyboard shortcuts
+brew install hammerspoon
+
 ###############################################################################
 # Configure OSX
 ###############################################################################
 
-$HOME/dotfiles/scripts/setup/macos-defaults
+"$HOME/dotfiles/scripts/setup/macos-defaults"

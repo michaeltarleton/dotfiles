@@ -1,4 +1,5 @@
 % git
+% https://danielhpavey.uk/vim/vim-open-all-files-from-specified-commit/
 
 # Lists the tags that include the specified commit
 git tag --contains <COMMIT>
@@ -17,6 +18,9 @@ git checkout @{90.days.ago}
 
 # Restores a file to it's unresolved state
 git checkout -m FILE_GLOB_PATTERN
+
+# Checkout the version of a file present on another branch (or ref)
+git checkout <BRANCH> -- <FILE>
 
 # Ignore whitespace changes when showing diff
 git diff --ignore-all-space
@@ -56,6 +60,12 @@ git log --pretty=short --since='10 weeks' --until='2 weeks' | git shortlog -sn
 
 # Version string suitable for Erlang module `-vsn` attributes.
 git describe --long
+
+# show least (or most) recently modified files in a Git repo
+while read file; do echo $(git log --pretty=format:%ai -n 1 --date=raw -- $file) $file; done < <(git ls-tree -r --name-only HEAD) | sort -r
+
+# List paths of file changed in specific commit
+git diff-tree --no-commit-id --name-only -r <COMMIT>
 
 COMMIT:
 COMMIT_2:

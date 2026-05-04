@@ -1,5 +1,5 @@
-# Use asdf
-. "$HOME/.asdf/asdf.sh"
+# Add shims directory to path
+export PATH="$HOME/.asdf/shims:$PATH"
 
 # asdf plugin options
 

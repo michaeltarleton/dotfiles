@@ -1,9 +1,9 @@
-erlang 26.2
-elixir 1.15.7-otp-26
-lua 5.3.4
-ruby 2.6.8
-nodejs 19.7.0
-postgres 11.19
+erlang 28.0.2
+elixir 1.18.4-otp-28
+lua 5.4.6
+ruby 3.4.1
+nodejs 23.2.0
+postgres 17.5
 rebar 3.16.1
 python 3.11.2 2.7.18
 yarn 1.16.0

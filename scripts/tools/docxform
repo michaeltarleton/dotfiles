@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+
+# Unofficial Bash "strict mode"
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -euo pipefail
+#ORIGINAL_IFS=$IFS
+IFS=$'\t\n' # Stricter IFS settings
+
+usage() {
+    cat <<EOF
+Usage:
+
+$ docxform --am file.adoc file.markdown
+
+Operations:
+
+  --wa       Word Doc    -> Asciidoc
+  --la       LibreOffice -> Asciidoc
+  --ma       Markdown    -> Asciidoc
+  --am       Asciidoc    -> Markdown
+  --aw       Asciidoc    -> Word Doc
+  --ah       Asciidoc    -> HTML
+  --ae       Asciidoc    -> Epub
+  --ap       Asciidoc    -> PDF
+  --at       Asciidoc    -> Text
+  --akp      Asciidoc    -> PDF formatted for E-readers and mobile devices
+
+Transform a document from one format to another. This script was originally a
+bunch of shell functions that I eventually collected into this script.
+Useful for converting my asciidoc writing to various formats.
+
+This script depends on pandoc, latex, and asciidoctor.
+EOF
+}
+
+error_exit() {
+  printf "\e[1;7;31m%s\n\e[0m" "$1" 1>&2
+  exit "${2:-1}" # default exit status 1
+}
+
+# Pipeline building block functions
+
+github_markdown_to_asciidoc() {
+  pandoc --from gfm --to asciidoc --wrap none
+}
+
+markdown_to_asciidoc() {
+  pandoc --from markdown --to asciidoc --wrap none
+}
+
+worddoc_to_asciidoc() {
+  pandoc --from docx --to asciidoc --wrap none
+}
+
+libredoc_to_asciidoc() {
+  pandoc --from odt --to asciidoc --wrap none
+}
+
+asciidoc_to_docbook() {
+  asciidoctor -b docbook -
+}
+
+docbook_to_epub() {
+  pandoc -f docbook -t epub
+}
+
+docbook_to_markdown() {
+  pandoc -f docbook --to markdown_strict --wrap none
+}
+
+docbook_to_worddoc() {
+  pandoc --from docbook --to docx
+}
+
+docbook_to_pdf() {
+  pandoc --from docbook --to pdf --pdf-engine=pdflatex
+}
+
+docbook_to_kindle_pdf() {
+  pandoc --from docbook --to pdf --pdf-engine=pdflatex -V papersize:a6 -V geometry:margin=0.1in
+}
+
+docbook_to_html() {
+  pandoc --from docbook --to html -s
+}
+
+docbook_to_text() {
+  pandoc --from docbook --to plain -s
+}
+
+# Conversion functions
+
+# Asciidoc to Markdown conversion function, since pandoc can't do this natively.
+# Pipe asciidoc to this function on STDIN, and it will write the markdown to
+# STDOUT. Based on
+# https://alvinalexander.com/bookmarks/how-convert-asciidoc-to-html-or-markdown
+asciidoc_to_markdown() {
+  asciidoc_to_docbook < "$1" | docbook_to_markdown > "$2"
+}
+
+asciidoc_to_pdf() {
+  asciidoc_to_docbook < "$1" | docbook_to_pdf > "$2"
+}
+
+asciidoc_to_kpdf() {
+  asciidoc_to_docbook < "$1" | docbook_to_kindle_pdf > "$2"
+}
+
+asciidoc_to_worddoc() {
+  asciidoc_to_docbook < "$1" | docbook_to_worddoc > "$2"
+}
+
+asciidoc_to_epub() {
+  asciidoc_to_docbook < "$1" | docbook_to_epub > "$2"
+}
+
+asciidoc_to_html() {
+  asciidoc_to_docbook < "$1" | docbook_to_html > "$2"
+}
+
+asciidoc_to_text() {
+  asciidoc_to_docbook < "$1" | docbook_to_text > "$2"
+}
+
+resolve_input() {
+  case "${1:-}" in
+    '')
+      printf "/dev/stdin\n"
+      ;;
+    '-')
+      printf "/dev/stdin\n"
+      ;;
+    *)
+      printf "%s\n" "$1"
+  esac
+}
+
+resolve_output() {
+  case "${1:-}" in
+    '')
+      printf "/dev/stdout\n"
+      ;;
+    '-')
+      printf "/dev/stdout\n"
+      ;;
+    *)
+      printf "%s\n" "$1"
+  esac
+}
+
+input="$(resolve_input "${2:-}")"
+output="$(resolve_output "${3:-}")"
+
+case ${1:-} in
+  -h|-\?|--help)
+    usage
+    exit
+    ;;
+  --ghma)
+    github_markdown_to_asciidoc < "$input" > "$output"
+    shift
+    ;;
+  --ma)
+    markdown_to_asciidoc < "$input" > "$output"
+    shift
+    ;;
+  --am)
+    asciidoc_to_markdown "$input" "$output"
+    shift
+    ;;
+  --aw)
+    asciidoc_to_worddoc "$input" "$output"
+    shift
+    ;;
+  --wa)
+    worddoc_to_asciidoc "$input" "$output"
+    shift
+    ;;
+  --la)
+    libredoc_to_asciidoc "$input" "$output"
+    shift
+    ;;
+  --ae)
+    asciidoc_to_epub "$input" "$output"
+    shift
+    ;;
+  --ap)
+    asciidoc_to_pdf "$input" "$output"
+    shift
+    ;;
+  --akp)
+    asciidoc_to_kpdf "$input" "$output"
+    shift
+    ;;
+  --ah)
+    asciidoc_to_html "$input" "$output"
+    shift
+    ;;
+  --at)
+    asciidoc_to_text "$input" "$output"
+    shift
+    ;;
+  *)
+    if [ -z "${1:-}" ]; then
+      error_exit "No conversion flag specified"
+    else
+      error_exit "Unknown option ${1:-}"
+    fi
+esac
